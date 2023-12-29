@@ -49,4 +49,90 @@ int SDL_powerof2(int x)
     return value;
 }
 
+#ifdef _WIN32
+
+#include <windows.h>
+#ifndef WINAPI
+    #define WINAPI __stdcall
+#endif
+
+static void* getfunc(char* ln, char* fn) {
+    FARPROC f;
+    HMODULE l = LoadLibraryA(ln);
+    if (!l) return NULL;
+    f = (void*)GetProcAddress(l, fn);
+    FreeLibrary(l);
+    return f;
+}
+
+static BOOL WINAPI AttachConsole_internal_fallback(DWORD p) {
+    (void)p;
+    return FALSE;
+}
+static BOOL WINAPI AttachConsole_internal_load(DWORD p) {
+    AttachConsole_internal = getfunc("kernel32.dll", "AttachConsole");
+    if (!AttachConsole_internal) AttachConsole_internal = AttachConsole_internal_fallback;
+    return AttachConsole_internal(p);
+}
+
+static BOOL WINAPI GetModuleHandleExW_internal_fallback(DWORD f, LPCWSTR n, HMODULE* m) {
+    (void)f; (void)n;
+    *m = NULL;
+    return FALSE;
+}
+static BOOL WINAPI GetModuleHandleExW_internal_load(DWORD f, LPCWSTR n, HMODULE* m) {
+    GetModuleHandleExW_internal = getfunc("kernel32.dll", "GetModuleHandleExW");
+    if (!GetModuleHandleExW_internal) GetModuleHandleExW_internal = GetModuleHandleExW_internal_fallback;
+    return GetModuleHandleExW_internal(f, n, m);
+}
+
+static UINT WINAPI GetRawInputData_internal_fallback(HANDLE r, UINT c, LPVOID d, PUINT s, UINT h) {
+    (void)r; (void)c; (void)d; (void)s; (void)h;
+    return (UINT)-1;
+}
+static UINT WINAPI GetRawInputData_internal_load(HANDLE r, UINT c, LPVOID d, PUINT s, UINT h) {
+    GetRawInputData_internal = getfunc("user32.dll", "GetRawInputData");
+    if (!GetRawInputData_internal) GetRawInputData_internal = GetRawInputData_internal_fallback;
+    return GetRawInputData_internal(r, c, d, s, h);
+}
+
+static UINT WINAPI GetRawInputDeviceInfoA_internal_fallback(HANDLE d, UINT c, LPVOID data, PUINT s) {
+    (void)d; (void)c; (void)data; (void)s;
+    return (UINT)-1;
+}
+static UINT WINAPI GetRawInputDeviceInfoA_internal_load(HANDLE d, UINT c, LPVOID data, PUINT s) {
+    GetRawInputDeviceInfoA_internal = getfunc("user32.dll", "GetRawInputDeviceInfoA");
+    if (!GetRawInputDeviceInfoA_internal) GetRawInputDeviceInfoA_internal = GetRawInputDeviceInfoA_internal_fallback;
+    return GetRawInputDeviceInfoA_internal(d, c, data, s);
+}
+
+static UINT WINAPI GetRawInputDeviceList_internal_fallback(PVOID r, PUINT n, UINT s) {
+    (void)r; (void)n; (void)s;
+    return (UINT)-1;
+}
+static UINT WINAPI GetRawInputDeviceList_internal_load(PVOID r, PUINT n, UINT s) {
+    GetRawInputDeviceList_internal = getfunc("user32.dll", "GetRawInputDeviceList");
+    if (!GetRawInputDeviceList_internal) GetRawInputDeviceList_internal = GetRawInputDeviceList_internal_fallback;
+    return GetRawInputDeviceList_internal(r, n, s);
+}
+
+BOOL WINAPI RegisterRawInputDevices_internal_fallback(PVOID r, UINT n, UINT s) {
+    (void)r; (void)n; (void)s;
+    return FALSE;
+}
+BOOL WINAPI RegisterRawInputDevices_internal_load(PVOID r, UINT n, UINT s) {
+    RegisterRawInputDevices_internal = getfunc("user32.dll", "RegisterRawInputDevices");
+    if (!RegisterRawInputDevices_internal) RegisterRawInputDevices_internal = RegisterRawInputDevices_internal_fallback;
+    return RegisterRawInputDevices_internal(r, n, s);
+}
+
+BOOL (WINAPI * AttachConsole_internal)(DWORD) = AttachConsole_internal_load;
+BOOL (WINAPI * GetModuleHandleExW_internal)(DWORD, LPCWSTR, HMODULE*) = GetModuleHandleExW_internal_load;
+UINT (WINAPI * GetRawInputData_internal)(HANDLE, UINT, LPVOID, PUINT, UINT) = GetRawInputData_internal_load;
+UINT (WINAPI * GetRawInputDeviceInfoA_internal)(HANDLE, UINT, LPVOID, PUINT) = GetRawInputDeviceInfoA_internal_load;
+UINT (WINAPI * GetRawInputDeviceList_internal)(PVOID, PUINT, UINT) = GetRawInputDeviceList_internal_load;
+BOOL (WINAPI * RegisterRawInputDevices_internal)(PVOID, UINT, UINT) = RegisterRawInputDevices_internal_load;
+
+#endif
+
 /* vi: set ts=4 sw=4 expandtab: */

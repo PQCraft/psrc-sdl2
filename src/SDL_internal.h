@@ -125,6 +125,21 @@
 #define SDL_HAVE_YUV !SDL_LEAN_AND_MEAN
 #endif
 
+#ifdef _WIN32
+
+#include "core/windows/SDL_windows.h"
+
+extern BOOL (WINAPI * AttachConsole_internal)(DWORD);
+extern BOOL (WINAPI * GetModuleHandleExW_internal)(DWORD, LPCWSTR, HMODULE*);
+extern UINT (WINAPI * GetRawInputData_internal)(HANDLE, UINT, LPVOID, PUINT, UINT);
+extern UINT (WINAPI * GetRawInputDeviceInfoA_internal)(HANDLE, UINT, LPVOID, PUINT);
+extern UINT (WINAPI * GetRawInputDeviceList_internal)(PVOID, PUINT, UINT);
+extern BOOL (WINAPI * RegisterRawInputDevices_internal)(PVOID, UINT, UINT);
+
+#define GetModuleHandleEx_internal GetModuleHandleExW_internal
+
+#endif
+
 #include "SDL_assert.h"
 #include "SDL_log.h"
 

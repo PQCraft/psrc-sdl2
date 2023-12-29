@@ -127,7 +127,7 @@ static SDL_bool SDL_IsXInputDevice(Uint16 vendor, Uint16 product)
     }
 
     /* Go through RAWINPUT (WinXP and later) to find HID devices. */
-    if ((GetRawInputDeviceList(NULL, &raw_device_count, sizeof(RAWINPUTDEVICELIST)) == -1) || (!raw_device_count)) {
+    if ((GetRawInputDeviceList_internal(NULL, &raw_device_count, sizeof(RAWINPUTDEVICELIST)) == -1) || (!raw_device_count)) {
         return SDL_FALSE; /* oh well. */
     }
 
@@ -137,7 +137,7 @@ static SDL_bool SDL_IsXInputDevice(Uint16 vendor, Uint16 product)
         return SDL_FALSE;
     }
 
-    raw_device_count = GetRawInputDeviceList(raw_devices, &raw_device_count, sizeof(RAWINPUTDEVICELIST));
+    raw_device_count = GetRawInputDeviceList_internal(raw_devices, &raw_device_count, sizeof(RAWINPUTDEVICELIST));
     if (raw_device_count == (UINT)-1) {
         SDL_free(raw_devices);
         raw_devices = NULL;
@@ -156,8 +156,8 @@ static SDL_bool SDL_IsXInputDevice(Uint16 vendor, Uint16 product)
         rdi.cbSize = sizeof(rdi);
 
         if ((raw_devices[i].dwType != RIM_TYPEHID) ||
-            (GetRawInputDeviceInfoA(raw_devices[i].hDevice, RIDI_DEVICEINFO, &rdi, &rdiSize) == ((UINT)-1)) ||
-            (GetRawInputDeviceInfoA(raw_devices[i].hDevice, RIDI_DEVICENAME, devName, &nameSize) == ((UINT)-1)) ||
+            (GetRawInputDeviceInfoA_internal(raw_devices[i].hDevice, RIDI_DEVICEINFO, &rdi, &rdiSize) == ((UINT)-1)) ||
+            (GetRawInputDeviceInfoA_internal(raw_devices[i].hDevice, RIDI_DEVICENAME, devName, &nameSize) == ((UINT)-1)) ||
             (SDL_strstr(devName, "IG_") == NULL)) {
             /* Skip non-XInput devices */
             continue;

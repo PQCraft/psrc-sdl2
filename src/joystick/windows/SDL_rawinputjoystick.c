@@ -871,12 +871,12 @@ static void RAWINPUT_AddDevice(HANDLE hDevice)
 
     /* Figure out what kind of device it is */
     size = sizeof(rdi);
-    CHECK(GetRawInputDeviceInfoA(hDevice, RIDI_DEVICEINFO, &rdi, &size) != (UINT)-1);
+    CHECK(GetRawInputDeviceInfoA_internal(hDevice, RIDI_DEVICEINFO, &rdi, &size) != (UINT)-1);
     CHECK(rdi.dwType == RIM_TYPEHID);
 
     /* Get the device "name" (HID Path) */
     size = SDL_arraysize(dev_name);
-    CHECK(GetRawInputDeviceInfoA(hDevice, RIDI_DEVICENAME, dev_name, &size) != (UINT)-1);
+    CHECK(GetRawInputDeviceInfoA_internal(hDevice, RIDI_DEVICENAME, dev_name, &size) != (UINT)-1);
     /* Only take XInput-capable devices */
     CHECK(SDL_strstr(dev_name, "IG_") != NULL);
 #ifdef SDL_JOYSTICK_HIDAPI
@@ -895,10 +895,10 @@ static void RAWINPUT_AddDevice(HANDLE hDevice)
 
     /* Get HID Top-Level Collection Preparsed Data */
     size = 0;
-    CHECK(GetRawInputDeviceInfoA(hDevice, RIDI_PREPARSEDDATA, NULL, &size) != (UINT)-1);
+    CHECK(GetRawInputDeviceInfoA_internal(hDevice, RIDI_PREPARSEDDATA, NULL, &size) != (UINT)-1);
     device->preparsed_data = (PHIDP_PREPARSED_DATA)SDL_calloc(size, sizeof(BYTE));
     CHECK(device->preparsed_data);
-    CHECK(GetRawInputDeviceInfoA(hDevice, RIDI_PREPARSEDDATA, device->preparsed_data, &size) != (UINT)-1);
+    CHECK(GetRawInputDeviceInfoA_internal(hDevice, RIDI_PREPARSEDDATA, device->preparsed_data, &size) != (UINT)-1);
 
     hFile = CreateFileA(dev_name, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
     CHECK(hFile != INVALID_HANDLE_VALUE);
@@ -996,13 +996,13 @@ static void RAWINPUT_DetectDevices(void)
 {
     UINT device_count = 0;
 
-    if ((GetRawInputDeviceList(NULL, &device_count, sizeof(RAWINPUTDEVICELIST)) != -1) && device_count > 0) {
+    if ((GetRawInputDeviceList_internal(NULL, &device_count, sizeof(RAWINPUTDEVICELIST)) != -1) && device_count > 0) {
         PRAWINPUTDEVICELIST devices = NULL;
         UINT i;
 
         devices = (PRAWINPUTDEVICELIST)SDL_malloc(sizeof(RAWINPUTDEVICELIST) * device_count);
         if (devices) {
-            device_count = GetRawInputDeviceList(devices, &device_count, sizeof(RAWINPUTDEVICELIST));
+            device_count = GetRawInputDeviceList_internal(devices, &device_count, sizeof(RAWINPUTDEVICELIST));
             if (device_count != (UINT)-1) {
                 for (i = 0; i < device_count; ++i) {
                     RAWINPUT_AddDevice(devices[i].hDevice);
@@ -2081,7 +2081,7 @@ int RAWINPUT_RegisterNotifications(HWND hWnd)
         rid[i].hwndTarget = hWnd;
     }
 
-    if (!RegisterRawInputDevices(rid, SDL_arraysize(rid), sizeof(RAWINPUTDEVICE))) {
+    if (!RegisterRawInputDevices_internal(rid, SDL_arraysize(rid), sizeof(RAWINPUTDEVICE))) {
         return SDL_SetError("Couldn't register for raw input events");
     }
     return 0;
@@ -2103,7 +2103,7 @@ int RAWINPUT_UnregisterNotifications()
         rid[i].hwndTarget = NULL;
     }
 
-    if (!RegisterRawInputDevices(rid, SDL_arraysize(rid), sizeof(RAWINPUTDEVICE))) {
+    if (!RegisterRawInputDevices_internal(rid, SDL_arraysize(rid), sizeof(RAWINPUTDEVICE))) {
         return SDL_SetError("Couldn't unregister for raw input events");
     }
     return 0;
@@ -2146,7 +2146,7 @@ RAWINPUT_WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
             Uint8 data[sizeof(RAWINPUTHEADER) + sizeof(RAWHID) + USB_PACKET_LENGTH];
             UINT buffer_size = SDL_arraysize(data);
 
-            if ((int)GetRawInputData((HRAWINPUT)lParam, RID_INPUT, data, &buffer_size, sizeof(RAWINPUTHEADER)) > 0) {
+            if ((int)GetRawInputData_internal((HRAWINPUT)lParam, RID_INPUT, data, &buffer_size, sizeof(RAWINPUTHEADER)) > 0) {
                 PRAWINPUT raw_input = (PRAWINPUT)data;
                 SDL_RAWINPUT_Device *device = RAWINPUT_DeviceFromHandle(raw_input->header.hDevice);
                 if (device) {

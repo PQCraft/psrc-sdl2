@@ -373,7 +373,7 @@ static void SDLCALL SDL_LogOutput(void *userdata, int category, SDL_LogPriority 
 
         /* Maybe attach console and get stderr handle */
         if (consoleAttached == 0) {
-            attachResult = AttachConsole(ATTACH_PARENT_PROCESS);
+            attachResult = AttachConsole_internal(ATTACH_PARENT_PROCESS);
             if (!attachResult) {
                 attachError = GetLastError();
                 if (attachError == ERROR_INVALID_HANDLE) {

@@ -56,7 +56,7 @@ static int ToggleRawInput(SDL_bool enabled)
     }
 
     /* (Un)register raw input for mice */
-    if (RegisterRawInputDevices(&rawMouse, 1, sizeof(RAWINPUTDEVICE)) == FALSE) {
+    if (RegisterRawInputDevices_internal(&rawMouse, 1, sizeof(RAWINPUTDEVICE)) == FALSE) {
         /* Reset the enable count, otherwise subsequent enable calls will
            believe raw input is enabled */
         rawInputEnableCount = 0;
